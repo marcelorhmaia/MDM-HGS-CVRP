@@ -20,7 +20,7 @@ https://doi.org/10.1016/j.cor.2021.105643 (Available [HERE](https://arxiv.org/ab
 
 This solver uses [FPmax* LIB](https://github.com/marcelorhmaia/FPmax-LIB).
 
-You should download and build it before compiling the solver (see instructions on the link above).
+You should download and build it before compiling the program (see instructions on the link above).
 
 ## Compiling the program
 
