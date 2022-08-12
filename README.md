@@ -1,5 +1,5 @@
 
-# MDM-HGS-CVRP: An improved version of the Hybrid Genetic Search for the CVRP
+# MDM-HGS-CVRP: An improved Hybrid Genetic Search with Data Mining for the CVRP
 
 MDM-HGS-CVRP is a modified version of [HGS-CVRP](https://github.com/vidalt/HGS-CVRP), an implementation of the Hybrid Genetic Search (HGS) specialized to the Capacitated Vehicle Routing Problem (CVRP) by Thibaut Vidal [2].
 
