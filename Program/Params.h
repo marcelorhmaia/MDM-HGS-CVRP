@@ -49,6 +49,12 @@ struct Client
 	int polarAngle;			// Polar angle of the client around the depot, measured in degrees and truncated for convenience
 };
 
+struct Savings {
+    int c1;
+    int c2;
+    double value;
+};
+
 class Params
 {
 public:
@@ -60,6 +66,15 @@ public:
 	int nbElite				= 4;		// Number of elite individuals (reduced in HGS-2020)
 	int nbClose				= 5;		// Number of closest solutions/individuals considered when calculating diversity contribution
 	double targetFeasible   = 0.2;		// Reference proportion for the number of feasible individuals, used for the adaptation of the penalty parameters
+	int seed				= 0;		// Random seed
+	int nbIter				= 20000;	// Number of iterations without improvement until termination. Default value: 20,000 iterations
+	double randGeneration   = 0.5;		// Reference proportion for the number of individuals to be generated using the original randomized initialization algorithm
+
+	/* PARAMETERS OF THE MDM APPROACH */
+	unsigned mdmNbElite			= 10;		// Maximum number of individuals in the MDM elite
+	unsigned mdmNbPatterns		= 10;		// Number of patterns to be mined from elite
+	double mdmNURestarts		= 0.05;		// Proportion of restarts without update of the MDM elite to trigger data mining
+	double mdmMinSup			= 0.2;		// Minimum support for elite data mining
 	
 	/* ADAPTIVE PENALTY COEFFICIENTS */
 	double penaltyCapacity;				// Penalty for one unit of capacity excess (adapted through the search)
@@ -78,9 +93,16 @@ public:
 	std::vector < Client > cli ;							// Vector containing information on each client
 	std::vector < std::vector < double > > timeCost ;		// Distance matrix
 	std::vector < std::vector < int > > correlatedVertices;	// Neighborhood restrictions: For each client, list of nearby customers
+	std::vector < Savings > savingsList;						// Savings list used to generate solutions with the randomized CWS algorithm
+	bool isExplicitDistances;								// Indicates if the distances are given explicitly (instead of node coordinates)
+	
+	/* START TIME */	
+	double startTime;
+	
+	double wallClock();
 
 	// Initialization from a given data set
-	Params(std::string pathToInstance, int nbVeh, int seedRNG);
+	Params(std::string pathToInstance, int nbVeh, int seedRNG, int nbIter, int mdmNbElite, int mdmNbPatterns, double mdmNURestarts, double mdmMinSup, double rcwsGeneration, int distanceType);
 };
 #endif
 

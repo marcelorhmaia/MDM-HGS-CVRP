@@ -38,11 +38,17 @@ public:
 	std::string pathInstance;		// Instance path
 	std::string pathSolution;		// Solution path
 	std::string pathBKS = "";		// BKS path
+	double randGen		= 0.5;		// Reference proportion for the number of individuals to be generated using the original randomized initialization algorithm
+	int mdmNbElite		= 10;		// Maximum number of individuals in the MDM elite
+	int mdmNbPatterns	= 10;		// Number of patterns to be mined from elite
+	double mdmNURestarts	= 0.05;		// Proportion of restarts without update of the MDM elite to trigger data mining
+	double mdmMinSup		= 0.2;		// Minimum support for elite data mining
+	int distanceType	= 1;
 
 	// Reads the line of command and extracts possible options
 	CommandLine(int argc, char* argv[])
 	{
-		if (argc % 2 != 1 || argc > 13 || argc < 3)
+		if (argc < 4 || argc > 5)
 		{
 			std::cout << "----- NUMBER OF COMMANDLINE ARGUMENTS IS INCORRECT: " << argc << std::endl;
 			display_help(); throw std::string("Incorrect line of command");
@@ -50,25 +56,10 @@ public:
 		else
 		{
 			pathInstance = std::string(argv[1]);
-			pathSolution = std::string(argv[2]);
-			for (int i = 3; i < argc; i += 2)
-			{
-				if (std::string(argv[i]) == "-t")
-					timeLimit = atoi(argv[i+1]);
-				else if (std::string(argv[i]) == "-it")
-					nbIter  = atoi(argv[i+1]);
-				else if (std::string(argv[i]) == "-bks")
-					pathBKS = std::string(argv[i+1]);
-				else if (std::string(argv[i]) == "-seed")
-					seed    = atoi(argv[i+1]);
-				else if (std::string(argv[i]) == "-veh")
-					nbVeh = atoi(argv[i+1]);
-				else
-				{
-					std::cout << "----- ARGUMENT NOT RECOGNIZED: " << std::string(argv[i]) << std::endl;
-					display_help(); throw std::string("Incorrect line of command");
-				}
-			}
+			distanceType = atoi(argv[2]);
+			timeLimit = atoi(argv[3]);
+			if (argc == 5)
+				seed = atoi(argv[4]);
 		}
 	}
 
@@ -76,13 +67,8 @@ public:
 	void display_help()
 	{
 		std::cout << std::endl;
-		std::cout << "-------------------------------------------------- HGS-CVRP algorithm (2020) --------------------------------------------------" << std::endl;
-		std::cout << "Call with: ./genvrp instancePath solPath [-it nbIter] [-t myCPUtime] [-bks bksPath] [-seed mySeed] [-veh nbVehicles]           " << std::endl;
-		std::cout << "[-it nbIterations] sets a maximum number of iterations without improvement. Defaults to 20,000                                 " << std::endl;
-		std::cout << "[-t myCPUtime] sets a time limit in seconds. If this parameter is set the code will be run iteratively until the time limit    " << std::endl;
-		std::cout << "[-bks bksPath] sets an optional path to a BKS. This file will be overwritten in case of improvement                            " << std::endl;
-		std::cout << "[-seed mySeed] sets a fixed seed. Defaults to 0                                                                                " << std::endl;
-		std::cout << "[-veh nbVehicles] sets a prescribed fleet size. Otherwise a reasonable UB on the the fleet size is calculated                  " << std::endl;
+		std::cout << "-------------------------------------------------- MDM-HGS-CVRP algorithm (2021) ----------------------------------------------" << std::endl;
+		std::cout << "Call with: ./mdmhgs instancePath distanceType timeLimit [seed]                                                                       " << std::endl;
 		std::cout << "-------------------------------------------------------------------------------------------------------------------------------" << std::endl;
 		std::cout << std::endl;
 	};

@@ -1,7 +1,28 @@
+#include <time.h>
+#include <sys/time.h>
+
 #include "Params.h"
 
-Params::Params(std::string pathToInstance, int nbVeh, int seedRNG) : nbVehicles(nbVeh)
+bool compSavings(const Savings &s1, const Savings &s2) { return s1.value > s2.value; }
+
+double Params::wallClock()
 {
+	struct timeval time;
+    gettimeofday(&time,NULL);
+    double now = (double)time.tv_sec + (double)time.tv_usec * .000001;
+	
+	return now - startTime;
+}
+
+Params::Params(std::string pathToInstance, int nbVeh, int seedRNG, int nbIter, int mdmNbElite, int mdmNbPatterns, double mdmNURestarts, 
+				double mdmMinSup, double randGeneration, int distanceType) : seed(seedRNG), nbIter(nbIter), randGeneration(randGeneration), mdmNbElite(mdmNbElite), 
+															mdmNbPatterns(mdmNbPatterns), mdmNURestarts(mdmNURestarts), 
+															mdmMinSup(mdmMinSup), nbVehicles(nbVeh)
+{
+	struct timeval time;
+    gettimeofday(&time,NULL);
+    startTime = (double)time.tv_sec + (double)time.tv_usec * .000001;
+	
 	std::string content, content2, content3;
 	double serviceTimeData = 0.;
 	nbClients = 0;
@@ -9,8 +30,9 @@ Params::Params(std::string pathToInstance, int nbVeh, int seedRNG) : nbVehicles(
 	maxDemand = 0.;
 	durationLimit = 1.e30;
 	vehicleCapacity = 1.e30;
-	isRoundingInteger = true;
+	isRoundingInteger = distanceType == 1 ? true : false;
 	isDurationConstraint = false;
+	isExplicitDistances = distanceType == 2 ? true : false;
 
 	// Initialize RNG
 	srand(seedRNG);					
@@ -22,10 +44,12 @@ Params::Params(std::string pathToInstance, int nbVeh, int seedRNG) : nbVehicles(
 		getline(inputFile, content);
 		getline(inputFile, content);
 		getline(inputFile, content);
-		for (inputFile >> content ; content != "NODE_COORD_SECTION" ; inputFile >> content)
+		for (inputFile >> content ; content != "NODE_COORD_SECTION" && content != "EDGE_WEIGHT_SECTION" ; inputFile >> content)
 		{
 			if (content == "DIMENSION") { inputFile >> content2 >> nbClients; nbClients--; } // Need to substract the depot from the number of nodes
 			else if (content == "EDGE_WEIGHT_TYPE")	inputFile >> content2 >> content3;
+			else if (content == "EDGE_WEIGHT_FORMAT")	inputFile >> content2 >> content3;
+			else if (content == "NODE_COORD_TYPE")	inputFile >> content2 >> content3;
 			else if (content == "CAPACITY")	inputFile >> content2 >> vehicleCapacity;
 			else if (content == "DISTANCE") { inputFile >> content2 >> durationLimit; isDurationConstraint = true; }
 			else if (content == "SERVICE_TIME")	inputFile >> content2 >> serviceTimeData;
@@ -33,6 +57,20 @@ Params::Params(std::string pathToInstance, int nbVeh, int seedRNG) : nbVehicles(
 		}
 		if (nbClients <= 0) throw std::string("Number of nodes is undefined");
 		if (vehicleCapacity == 1.e30) throw std::string("Vehicle capacity is undefined");
+		
+		timeCost = std::vector < std::vector< double > >(nbClients + 1, std::vector <double>(nbClients + 1, 0));
+	
+		if (isExplicitDistances)
+		{
+			for (int i = 1; i <= nbClients; i++)
+				for (int j = 0; j < i; j++)
+				{
+					inputFile >> timeCost[i][j];
+					timeCost[j][i] = timeCost[i][j];
+				}
+			
+			inputFile >> content;
+		}
 		
 		// Reading client coordinates
 		cli = std::vector<Client>(nbClients + 1);
@@ -67,26 +105,45 @@ Params::Params(std::string pathToInstance, int nbVeh, int seedRNG) : nbVehicles(
 	if (nbVehicles == INT_MAX)
 	{
 		nbVehicles = std::ceil(1.3*totalDemand/vehicleCapacity) + 3;  // Safety margin: 30% + 3 more vehicles than the trivial bin packing LB
-		std::cout << "----- FLEET SIZE WAS NOT SPECIFIED: DEFAULT INITIALIZATION TO " << nbVehicles << " VEHICLES" << std::endl;
+		//std::cout << "----- FLEET SIZE WAS NOT SPECIFIED: DEFAULT INITIALIZATION TO " << nbVehicles << " VEHICLES" << std::endl;
 	}
 	else
 	{
-		std::cout << "----- FLEET SIZE SPECIFIED IN THE COMMANDLINE: SET TO " << nbVehicles << " VEHICLES" << std::endl;
+		//std::cout << "----- FLEET SIZE SPECIFIED IN THE COMMANDLINE: SET TO " << nbVehicles << " VEHICLES" << std::endl;
 	}
 
-	// Calculation of the distance matrix
+	// Calculation of the distance matrix and of the savings list
 	maxDist = 0.;
-	timeCost = std::vector < std::vector< double > >(nbClients + 1, std::vector <double>(nbClients + 1));
-	for (int i = 0; i <= nbClients; i++)
+	
+	int savingsListSize = nbClients * (nbClients - 1) / 2;
+	int savingsCount = 0;
+	if (randGeneration < 1.0) savingsList = std::vector < Savings >(savingsListSize);
+	
+	for (int i = 1; i <= nbClients; i++)
 	{
-		for (int j = 0; j <= nbClients; j++)
+		for (int j = 0; j < i; j++)
 		{
-			double d = std::sqrt((cli[i].coordX - cli[j].coordX)*(cli[i].coordX - cli[j].coordX) + (cli[i].coordY - cli[j].coordY)*(cli[i].coordY - cli[j].coordY));
-			if (isRoundingInteger) { d += 0.5; d = (double)(int)d; } // integer rounding
-			if (d > maxDist) maxDist = d;
-			timeCost[i][j] = d;
+			if (!isExplicitDistances)
+			{
+				double d = std::sqrt((cli[i].coordX - cli[j].coordX)*(cli[i].coordX - cli[j].coordX) + (cli[i].coordY - cli[j].coordY)*(cli[i].coordY - cli[j].coordY));
+				if (isRoundingInteger) { d += 0.5; d = (double)(int)d; } // integer rounding
+				timeCost[i][j] = d;
+				timeCost[j][i] = d;
+			}
+			
+			if (timeCost[i][j] > maxDist) maxDist = timeCost[i][j];
+				
+			if (randGeneration < 1.0 && j > 0)
+			{
+				savingsList[savingsCount].c1 = i;
+				savingsList[savingsCount].c2 = j;
+				savingsList[savingsCount].value = timeCost[0][i] + timeCost[0][j] - timeCost[i][j];
+				savingsCount++;
+			}
 		}
 	}
+	
+	if (randGeneration < 1.0) std::sort(savingsList.begin(), savingsList.end(), compSavings);
 
 	// Calculation of the correlated vertices for each customer (for the granular restriction)
 	correlatedVertices = std::vector < std::vector < int > >(nbClients + 1);

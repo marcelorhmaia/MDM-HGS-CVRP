@@ -1,8 +1,28 @@
+#include "fpmax.h"
+
 #include "Population.h"
 
 void Population::generatePopulation()
 {
-	for (int i = 0; i < 4*params->mu; i++)
+	int populationSize = params->mu;
+	
+	// Randomized CWS is used to generate better individuals faster
+	for (int i = 0; i < populationSize * (1.0 - params->randGeneration); i++)
+	{
+		Individual * indiv;
+		if (mdmPatterns.empty())
+			indiv = new Individual(params, true);
+		else			
+			indiv = new Individual(params, true, nextMDMPattern());
+		
+		localSearch->run(indiv, params->penaltyCapacity, params->penaltyDuration);
+		
+		addIndividual(indiv, true);
+		delete indiv;
+	}
+	
+	// The rest of the individuals is generated via the original method to keep diversity
+	for (int i = 0; i < populationSize * params->randGeneration; i++)
 	{
 		Individual * randomIndiv = new Individual(params);
 		split->generalSplit(randomIndiv, params->nbVehicles);
@@ -52,9 +72,12 @@ bool Population::addIndividual(const Individual * indiv, bool updateFeasible)
 	// Track best solution
 	if (indiv->isFeasible && indiv->myCostSol.penalizedCost < bestSolutionRestart.myCostSol.penalizedCost - MY_EPSILON)
 	{
+		updateMDMElite(indiv);
 		bestSolutionRestart = *indiv;
 		if (indiv->myCostSol.penalizedCost < bestSolutionOverall.myCostSol.penalizedCost - MY_EPSILON)
 		{
+			indiv->printCVRPLibFormat();
+			
 			bestSolutionOverall = *indiv;
 			searchProgress.push_back({ clock(),bestSolutionOverall.myCostSol.penalizedCost });
 		}
@@ -115,9 +138,122 @@ void Population::removeWorstBiasedFitness(SubPopulation & pop)
 	delete worstIndividual; // Freeing memory
 }
 
+// Inserts the individual in MDM elite if: 
+// (1) it is different from those already in; and 
+// (2) MDM elite is not full OR this individual has a better penalized cost than at least one of those already in
+void Population::updateMDMElite(const Individual * indiv)
+{
+	unsigned old_elite_size = mdmElite.size();
+	mdmElite.insert(*indiv);
+	if (mdmElite.size() > params->mdmNbElite)	// In case max number of elite individuals is exceeded, remove the worst
+	{
+		std::set<Individual>::iterator it = --mdmElite.end();
+		if (it->myCostSol.penalizedCost > indiv->myCostSol.penalizedCost)
+		{
+			mdmEliteNonUpdatingRestarts = 0;
+			mdmEliteUpdated = true;
+		}
+		mdmElite.erase(it);
+	}
+	else if (mdmElite.size() > old_elite_size)
+	{
+		mdmEliteNonUpdatingRestarts = 0;
+		mdmEliteUpdated = true;
+	}
+}
+
+void Population::mineElite()
+{
+	if (mdmEliteUpdated && mdmEliteNonUpdatingRestarts >= mdmEliteMaxNonUpdatingRestarts && mdmElite.size() > 1)
+	{
+		int minSup = std::max(2, (int) (params->mdmMinSup * mdmElite.size()));
+		int numPatterns = params->mdmNbPatterns;
+	
+		int nbNodes = params->nbClients + 1; // all clients + depot
+		
+		Dataset* dataset = new Dataset;
+		for (auto it = mdmElite.begin(); it != mdmElite.end(); ++it)
+		{
+			Individual indiv = *it;
+			std::set<int> transaction;
+			for (int r = 0; r < params->nbVehicles; r++)
+				for (int c = 0; c < (int) indiv.chromR[r].size() - 1; c++)
+				{
+					int index = indiv.chromR[r][c] * nbNodes + indiv.chromR[r][c + 1]; // maps 2D matrix cell indices to a vector index
+					transaction.insert(index);
+				}
+			dataset->insert(transaction);
+		}
+		
+		FISet* frequentItemsets = fpmax(dataset, minSup, numPatterns);
+		
+		mdmPatterns.clear();
+		for (FISet::iterator it=frequentItemsets->begin(); it!=frequentItemsets->end(); ++it)
+		{
+			std::vector < std::vector <int> > tempPattern;
+			std::list<std::vector <int>*> routes;
+			
+			for (std::set<int>::iterator it2=it->begin(); it2!=it->end(); ++it2)
+			{
+				unsigned index = *it2;
+
+				int n1 = index / nbNodes;
+				int n2 = index % nbNodes;
+
+				std::vector <int> *lhs = NULL;
+				std::vector <int> *rhs = NULL;
+				std::vector <int> *tempRoute;
+				for (std::list<std::vector <int>*>::iterator r = routes.begin(); r != routes.end(); r++)
+					if (n1 && n1 == (*r)->back())
+						lhs = *r;
+					else if (n2 && n2 == (*r)->front())
+						rhs = *r;
+				if (lhs)
+					if (rhs)
+					{
+						for (std::vector<int>::iterator n = rhs->begin(); n != rhs->end(); n++)
+							lhs->push_back(*n);
+						routes.remove(rhs);
+						delete rhs;
+					}
+					else
+						lhs->push_back(n2);
+				else if (rhs)
+					rhs->insert(rhs->begin(), n1);
+				else
+				{
+					tempRoute = new std::vector <int>;
+					tempRoute->push_back(n1);
+					tempRoute->push_back(n2);
+					routes.push_back(tempRoute);
+				}
+			}
+
+			for (std::list<std::vector <int>*>::iterator r = routes.begin(); r != routes.end(); r++)
+				tempPattern.push_back(**r);
+
+			mdmPatterns.push_back(tempPattern);
+		}
+			
+		std::cout << "Elite mined" << std::endl;
+		
+		mdmEliteUpdated = false;
+		mdmNextPattern = 0;
+	}
+}
+
+std::vector < std::vector <int> >* Population::nextMDMPattern()
+{
+	std::vector < std::vector <int> >* pattern = &(mdmPatterns[mdmNextPattern]);
+	mdmNextPattern = (mdmNextPattern + 1) % mdmPatterns.size();
+	
+	return pattern;
+}
+
 void Population::restart()
 {
-	std::cout << "----- RESET: CREATING A NEW POPULATION -----" << std::endl;
+	mdmEliteNonUpdatingRestarts++;
+	//std::cout << "----- RESET: CREATING A NEW POPULATION -----" << std::endl;
 	for (Individual * indiv : feasibleSubpopulation) delete indiv ;
 	for (Individual * indiv : infeasibleSubpopulation) delete indiv;
 	feasibleSubpopulation.clear();
@@ -251,11 +387,21 @@ void Population::exportSearchProgress(std::string fileName, std::string instance
 		myfile << instanceName << ";" << seedRNG << ";" << state.second << ";" << (double)state.first / (double)CLOCKS_PER_SEC << std::endl;
 }
 
-Population::Population(Params * params, Split * split, LocalSearch * localSearch) : params(params), split(split), localSearch(localSearch)
+// Comparator for ordering individuals by penalized cost
+bool CompareIndividuals(Individual indiv1, Individual indiv2)
+{
+	return indiv1.myCostSol.penalizedCost < indiv2.myCostSol.penalizedCost;
+}
+
+Population::Population(Params * params, Split * split, LocalSearch * localSearch) : params(params), split(split), localSearch(localSearch), mdmElite(CompareIndividuals)
 {
 	listFeasibilityLoad = std::list<bool>(100, true);
 	listFeasibilityDuration = std::list<bool>(100, true);
 	generatePopulation();
+	
+	mdmEliteUpdated = false;
+	mdmEliteNonUpdatingRestarts = 0;
+	mdmEliteMaxNonUpdatingRestarts = (int) (params->mdmNURestarts * 400);
 }
 
 Population::~Population()

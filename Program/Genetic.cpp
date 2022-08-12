@@ -3,8 +3,9 @@
 void Genetic::run(int maxIterNonProd, int timeLimit)
 {	
 	int nbIterNonProd = 1;
-	for (int nbIter = 0 ; nbIterNonProd <= maxIterNonProd && clock()/CLOCKS_PER_SEC < timeLimit ; nbIter++)
-	{	
+	int nbRestarts = 0;
+	for (int nbIter = 0 ; nbIterNonProd <= maxIterNonProd && /*clock()/CLOCKS_PER_SEC*/params->wallClock() < timeLimit ; nbIter++)
+	{
 		/* SELECTION AND CROSSOVER */
 		crossoverOX(offspring, population->getBinaryTournament(),population->getBinaryTournament());
 
@@ -23,11 +24,19 @@ void Genetic::run(int maxIterNonProd, int timeLimit)
 
 		/* DIVERSIFICATION, PENALTY MANAGEMENT AND TRACES */
 		if (nbIter % 100 == 0) population->managePenalties() ;
-		if (nbIter % 500 == 0) population->printState(nbIter, nbIterNonProd);
+		//if (nbIter % 500 == 0) population->printState(nbIter, nbIterNonProd);
 
 		/* FOR TESTS INVOLVING SUCCESSIVE RUNS UNTIL A TIME LIMIT: WE RESET THE ALGORITHM/POPULATION EACH TIME maxIterNonProd IS ATTAINED*/
 		if (timeLimit != INT_MAX && nbIterNonProd == maxIterNonProd)
 		{
+			nbRestarts++;
+			std::cout << "\nRestart " << nbRestarts << std::endl;
+			
+			int estimatedRestarts = std::min((int) (timeLimit / (params->wallClock() / nbRestarts)), 1000);
+			population->mdmEliteMaxNonUpdatingRestarts = (int) (params->mdmNURestarts * estimatedRestarts);
+			
+			population->mineElite();
+			
 			population->restart();
 			nbIterNonProd = 1;
 		}

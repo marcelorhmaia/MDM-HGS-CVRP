@@ -69,8 +69,11 @@ public:
   // Reads a solution in CVRPLib format, returns TRUE if the process worked, or FALSE if the file does not exist or is not readable
   static bool readCVRPLibFormat(std::string fileName, std::vector<std::vector<int>> & readSolution, double & readCost);
 
-  // Constructor: random individual
-  Individual(Params * params);
+  // Prints a solution in CVRPLib format
+  void printCVRPLibFormat() const;
+
+  // Constructor: if rcws is TRUE, use the randomized CWS algorithm and the pattern (if not NULL); random individual otherwise
+  Individual(Params * params, bool rcws=false, std::vector < std::vector <int> >* pattern=NULL);
 
   // Constructor: empty individual
   Individual();

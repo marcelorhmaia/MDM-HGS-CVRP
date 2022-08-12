@@ -25,12 +25,18 @@ SOFTWARE.*/
 
 #include "Individual.h"
 #include "LocalSearch.h"
+#include <set>
+
 #include "Split.h"
 
 typedef std::vector <Individual*> SubPopulation ;
 
 class Population
 {
+   public:
+
+   int mdmEliteMaxNonUpdatingRestarts;	// Maximum number of restarts since the last time MDM elite was updated to trigger data mining
+   
    private:
 
    Params * params ;							// Problem parameters
@@ -43,12 +49,23 @@ class Population
    std::vector<std::pair<clock_t, double>> searchProgress; // Keeps tracks of the time stamps of successive best solutions
    Individual bestSolutionRestart;              // Best solution found during the current restart of the algorthm
    Individual bestSolutionOverall;              // Best solution found during the complete execution of the algorithm
+	
+   std::set<Individual,bool(*)(Individual,Individual)> mdmElite;	// MDM elite, kept ordered by increasing penalized cost
+   bool mdmEliteUpdated;					// Flag to indicate if MDM elite has been updated since the last call to mineElite()
+   int mdmEliteNonUpdatingRestarts;		// Number of restarts since the last time MDM elite was updated
+   std::vector< std::vector < std::vector <int> > > mdmPatterns;	// Patterns mined from MDM elite
+   int mdmNextPattern;					// Index of the next pattern to be used by MDM
 
    // Evaluates the biased fitness of all individuals in the population
    void updateBiasedFitnesses(SubPopulation & pop);
 
    // Removes the worst individual in terms of biased fitness
    void removeWorstBiasedFitness(SubPopulation & subpop);
+
+   // Checks if an individual is eligible to be inserted in the MDM elite. If TRUE, inserts it.
+   void updateMDMElite(const Individual * indiv);
+
+   std::vector < std::vector <int> >* nextMDMPattern();
 
    public:
 
@@ -91,6 +108,12 @@ class Population
 
    // Exports in a file the history of solution improvements
    void exportSearchProgress(std::string fileName, std::string instanceName, int seedRNG);
+   
+   // Mines patterns from MDM elite
+   void mineElite();
+   
+   // Returns the state of MDM patterns: TRUE if empty; False otherwise.
+   inline bool mdmPatternsEmpty() { return mdmPatterns.empty(); }
 
    // Constructor
    Population(Params * params, Split * split, LocalSearch * localSearch);

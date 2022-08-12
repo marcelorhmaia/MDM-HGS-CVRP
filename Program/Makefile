@@ -1,4 +1,4 @@
-all : genvrp
+all : mdmhgs
 
 CCC = g++
 CCFLAGS = -O3 -Wall -std=c++11 
@@ -13,8 +13,8 @@ OBJS2 = \
         $(TARGETDIR)/Population.o \
         $(TARGETDIR)/Split.o
 
-$(TARGETDIR)/genvrp: $(OBJS2)
-	$(CCC) $(CCFLAGS) -o $(TARGETDIR)/genvrp $(OBJS2)
+$(TARGETDIR)/mdmhgs: $(OBJS2)
+	$(CCC) $(CCFLAGS) -o $(TARGETDIR)/mdmhgs $(OBJS2) -I./include -L. -lfpmax -Wl,-rpath,.
 	
 $(TARGETDIR)/Genetic.o: Genetic.h Genetic.cpp
 	$(CCC) $(CCFLAGS) -c Genetic.cpp -o $(TARGETDIR)/Genetic.o
@@ -32,13 +32,13 @@ $(TARGETDIR)/Params.o: Params.h Params.cpp
 	$(CCC) $(CCFLAGS) -c Params.cpp -o $(TARGETDIR)/Params.o
 
 $(TARGETDIR)/Population.o: Population.h Population.cpp
-	$(CCC) $(CCFLAGS) -c Population.cpp -o $(TARGETDIR)/Population.o
+	$(CCC) $(CCFLAGS) -c Population.cpp -o $(TARGETDIR)/Population.o -I./include
 
 $(TARGETDIR)/Split.o: Split.h Split.cpp
 	$(CCC) $(CCFLAGS) -c Split.cpp -o $(TARGETDIR)/Split.o
 
-test: genvrp
-	./genvrp ../Instances/CVRP/X-n101-k25.vrp mySolution.sol -seed 1 
+test: mdmhgs
+	./mdmhgs ../Instances/CVRP/X-n101-k25.vrp 1 20
 
 clean:
 	$(RM) \
