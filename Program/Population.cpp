@@ -3,7 +3,17 @@
 void Population::generatePopulation()
 {
 	if (params.verbose) std::cout << "----- BUILDING INITIAL POPULATION" << std::endl;
-	for (int i = 0; i < 4*params.ap.mu && (i == 0 || params.ap.timeLimit == 0 || (double)(clock() - params.startTime) / (double)CLOCKS_PER_SEC < params.ap.timeLimit) ; i++)
+	
+	// A randomized version of the Clarke & Wright savings heuristic is used to generate better individuals faster
+	for (int i = 0; i < params.ap.mu * (1.0 - params.ap.randGeneration) && (i == 0 || params.ap.timeLimit == 0 || (double)(clock() - params.startTime) / (double)CLOCKS_PER_SEC < params.ap.timeLimit) ; i++)
+	{
+		Individual indiv(params, true);
+		localSearch.run(indiv, params.penaltyCapacity, params.penaltyDuration);
+		addIndividual(indiv, true);
+	}
+
+	// Another part is ramdomly generated to keep diversity
+	for (int i = 0; i < params.ap.mu * params.ap.randGeneration && (i == 0 || params.ap.timeLimit == 0 || (double)(clock() - params.startTime) / (double)CLOCKS_PER_SEC < params.ap.timeLimit) ; i++)
 	{
 		Individual randomIndiv(params);
 		split.generalSplit(randomIndiv, params.nbVehicles);

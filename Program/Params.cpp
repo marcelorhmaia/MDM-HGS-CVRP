@@ -1,5 +1,8 @@
 #include "Params.h"
 
+// A comparator for sorting the savings list (when the Clarke & Wright heuristic is used)
+bool compSavings(const Savings &s1, const Savings &s2) { return s1.value > s2.value; }
+
 // The universal constructor for both executable and shared library
 // When the executable is run from the commandline,
 // it will first generate an CVRPLIB instance from .vrp file, then supply necessary information.
@@ -77,6 +80,24 @@ Params::Params(
 	for (int i = 0; i <= nbClients; i++)
 		for (int j = 0; j <= nbClients; j++)
 			if (timeCost[i][j] > maxDist) maxDist = timeCost[i][j];
+	
+	// Calculation of the savings list (when the Clarke & Wright heuristic is used)
+	if (ap.randGeneration < 1.0)
+	{
+		savingsList = std::vector < Savings >(nbClients * (nbClients - 1) / 2);	// Assuming the distance matrix is symmetric
+		
+		int savingsCount = 0;
+		for (int i = 1; i <= nbClients; i++)
+			for (int j = 1; j < i; j++)
+			{
+				savingsList[savingsCount].c1 = i;
+				savingsList[savingsCount].c2 = j;
+				savingsList[savingsCount].value = timeCost[0][i] + timeCost[0][j] - timeCost[i][j];
+				savingsCount++;
+			}
+
+		std::sort(savingsList.begin(), savingsList.end(), compSavings);
+	}
 
 	// Calculation of the correlated vertices for each customer (for the granular restriction)
 	correlatedVertices = std::vector<std::vector<int> >(nbClients + 1);

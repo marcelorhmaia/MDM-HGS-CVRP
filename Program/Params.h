@@ -50,6 +50,13 @@ struct Client
 	int polarAngle;			// Polar angle of the client around the depot, measured in degrees and truncated for convenience
 };
 
+struct Savings				// Savins structure for the Clarke & Wright heuristic
+{
+    int c1;					// Client 1
+    int c2;					// Client 2
+    double value;			// Cost savings if two routes are concatenated through edge (c1, c2)
+};
+
 class Params
 {
 public:
@@ -81,6 +88,7 @@ public:
 	const std::vector< std::vector< double > >& timeCost;	// Distance matrix
 	std::vector< std::vector< int > > correlatedVertices;	// Neighborhood restrictions: For each client, list of nearby customers
 	bool areCoordinatesProvided;                            // Check if valid coordinates are provided
+	std::vector < Savings > savingsList;					// Savings list used in the Clarke & Wright heuristic
 
 	// Initialization from a given data set
 	Params(const std::vector<double>& x_coords,
