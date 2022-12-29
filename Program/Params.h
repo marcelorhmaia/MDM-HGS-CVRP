@@ -102,7 +102,7 @@ public:
 	double wallClock();
 
 	// Initialization from a given data set
-	Params(std::string pathToInstance, int nbVeh, int seedRNG, int nbIter, int mdmNbElite, int mdmNbPatterns, double mdmNURestarts, double mdmMinSup, double rcwsGeneration, int distanceType);
+	Params(std::string pathToInstance, int nbVeh, int seedRNG, int nbIter, int mdmNbElite, int mdmNbPatterns, double mdmNURestarts, double mdmMinSup, double randGeneration, int distanceType);
 };
 #endif
 
