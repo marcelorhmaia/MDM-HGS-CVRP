@@ -20,16 +20,16 @@ int main(int argc, char *argv[])
 			          cvrp.vehicleCapacity,cvrp.durationLimit,commandline.nbVeh,cvrp.isDurationConstraint,commandline.verbose,commandline.ap);
 		
 		// Dynamic randGeneration parameter value
-		if (commandline.ap.randGeneration < 0)
+		if (params.ap.randGeneration < 0)
 			if (params.nbClients < 200)
-				commandline.ap.randGeneration = 0.1;
+				params.ap.randGeneration = 0.1;
 			else if (params.nbClients < 400)
-				commandline.ap.randGeneration = 0.8;
+				params.ap.randGeneration = 0.8;
 			else
-				commandline.ap.randGeneration = 0.2;
+				params.ap.randGeneration = 0.2;
 
 		// Print all algorithm parameter values
-		if (commandline.verbose) print_algorithm_parameters(commandline.ap);
+		if (commandline.verbose) print_algorithm_parameters(params.ap);
 
 		// Running HGS
 		Genetic solver(params);
