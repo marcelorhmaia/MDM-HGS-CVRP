@@ -33,10 +33,6 @@ typedef std::vector <Individual*> SubPopulation ;
 
 class Population
 {
-   public:
-
-   int mdmEliteMaxNonUpdatingRestarts;	// Maximum number of restarts since the last time MDM elite was updated to trigger data mining
-   
    private:
 
    Params * params ;							// Problem parameters
@@ -69,6 +65,8 @@ class Population
 
    public:
 
+   int mdmEliteMaxNonUpdatingRestarts;	// Maximum number of restarts since the last time MDM elite was updated to trigger data mining
+   
    // Creates an initial population of individuals
    void generatePopulation();
 
