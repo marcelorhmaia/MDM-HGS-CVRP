@@ -7,6 +7,7 @@ void Genetic::run()
 
 	int nbIter;
 	int nbIterNonProd = 1;
+	int nbRestarts = 0;
 	if (params.verbose) std::cout << "----- STARTING GENETIC ALGORITHM" << std::endl;
 	for (nbIter = 0 ; nbIterNonProd <= params.ap.nbIter && (params.ap.timeLimit == 0 || (double)(clock()-params.startTime)/(double)CLOCKS_PER_SEC < params.ap.timeLimit) ; nbIter++)
 	{	
@@ -33,6 +34,11 @@ void Genetic::run()
 		/* FOR TESTS INVOLVING SUCCESSIVE RUNS UNTIL A TIME LIMIT: WE RESET THE ALGORITHM/POPULATION EACH TIME maxIterNonProd IS ATTAINED*/
 		if (params.ap.timeLimit != 0 && nbIterNonProd == params.ap.nbIter)
 		{
+			nbRestarts++;
+			double elapsedTime = (double)(clock()-params.startTime)/(double)CLOCKS_PER_SEC;
+			int estimatedRestarts = std::min((int) (params.ap.timeLimit / (elapsedTime / nbRestarts)), 1000);
+			population.mdmEliteMaxNonUpdatingRestarts = (int) (params.ap.mdmNURestarts * estimatedRestarts);
+			population.mineElite();
 			population.restart();
 			nbIterNonProd = 1;
 		}

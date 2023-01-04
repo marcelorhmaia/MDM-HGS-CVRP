@@ -1,50 +1,38 @@
-
-[![CI_Build](https://github.com/vidalt/HGS-CVRP/actions/workflows/CI_Build.yml/badge.svg)](https://github.com/vidalt/HGS-CVRP/actions/workflows/CI_Build.yml)
-
 # MDM-HGS-CVRP: An Improved Hybrid Genetic Search with Data Mining for the CVRP
 
-Please refer to the [dimacs](https://github.com/marcelorhmaia/MDM-HGS-CVRP/tree/dimacs) branch, which contains the MDM-HGS-CVRP implementation used for the 12th DIMACS Implementation Challenge (based on HGS-CVRP v1.0.0).
+MDM-HGS-CVRP is a modified version of [HGS-CVRP](https://github.com/vidalt/HGS-CVRP), an implementation of the Hybrid Genetic Search (HGS) specialized to the Capacitated Vehicle Routing Problem (CVRP) by Thibaut Vidal [2].
 
-It shall be updated to the current main branch code base soon.
+It incorporates a new solution generation method into the (re-)initialization process, based on the Multi Data Mining (MDM) approach, which applies patterns extracted from good solutions using data mining, and on a randomized version of the Clarke and Wright savings heuristic.
 
-<!--- This is a modern implementation of the Hybrid Genetic Search (HGS) with Advanced Diversity Control of [1], specialized to the Capacitated Vehicle Routing Problem (CVRP).
+MDM-HGS-CVRP ranked 2nd in the CVRP track of the [12th DIMACS Implementation Challenge](http://dimacs.rutgers.edu/programs/challenge/vrp/) and is described in [1].
+The code used in the Challenge (based on HGS-CVRP v1.0.0) is in the [dimacs](https://github.com/marcelorhmaia/MDM-HGS-CVRP/tree/dimacs) branch.
 
-This algorithm has been designed to be transparent, specialized, and highly concise, retaining only the core elements that make this method successful.
-Beyond a simple reimplementation of the original algorithm, this code also includes speed-up strategies and methodological improvements learned over the past decade of research and dedicated to the CVRP.
-In particular, it relies on an additional neighborhood called SWAP*, which consists in exchanging two customers between different routes without an insertion in place.
+The main branch is based on HGS-CVRP v2.0.0.
 
 ## References
 
-When using this algorithm (or part of it) in derived academic studies, please refer to the following works:
+When using this algorithm (or part of it) in derived academic studies, please refer to the following papers:
 
-[1] Vidal, T., Crainic, T. G., Gendreau, M., Lahrichi, N., Rei, W. (2012). 
-A hybrid genetic algorithm for multidepot and periodic vehicle routing problems. Operations Research, 60(3), 611-624. 
-https://doi.org/10.1287/opre.1120.1048 (Available [HERE](https://w1.cirrelt.ca/~vidalt/papers/HGS-CIRRELT-2011.pdf) in technical report form).
+[1] Maia, M. R. H., Plastino, A., Souza, U. S. (2022). 
+An Improved Hybrid Genetic Search with Data Mining for the CVRP. In: 12th DIMACS Implementation Challenge: Vehicle Routing Problems. 
+(Available [HERE](http://dimacs.rutgers.edu/events/details?eID=2073)).
 
 [2] Vidal, T. (2022). Hybrid genetic search for the CVRP: Open-source implementation and SWAP* neighborhood. Computers & Operations Research, 140, 105643.
 https://doi.org/10.1016/j.cor.2021.105643 (Available [HERE](https://arxiv.org/abs/2012.10384) in technical report form).
 
-We also recommend referring to the Github version of the code used, as future versions may achieve better performance as the code evolves.
-The version associated with the results presented in [2] is [v1.0.0](https://github.com/vidalt/HGS-CVRP/releases/tag/v1.0.0).
+## Dependencies
 
-## Other programming languages
+This program uses [FPmax* LIB](https://github.com/marcelorhmaia/FPmax-LIB).
 
-There exist wrappers for this code in the following languages:
-* **C**: The **C_Interface** file contains a simple C API
-* **Python**: The [PyHygese](https://github.com/chkwon/PyHygese) package is maintained to interact with the latest release of this algorithm
-* **Julia**: The [Hygese.jl](https://github.com/chkwon/Hygese.jl) package is maintained to interact with the latest release of this algorithm
+You should download and build it before compiling the program (see instructions on the link above).
 
-We encourage you to consider using these wrappers in your different projects.
-Please contact me if you wish to list other wrappers and interfaces in this section.
-
-## Scope
-
-This code has been designed to solve the "canonical" Capacitated Vehicle Routing Problem (CVRP).
-It can also directly handle asymmetric distances as well as duration constraints.
-
-This code version has been designed and calibrated for medium-scale instances with up to 1,000 customers. 
-It is **not** designed in its current form to run very-large scale instances (e.g., with over 5,000 customers), as this requires additional solution strategies (e.g., decompositions and additional neighborhood limitations).
-If you need to solve problems outside of this algorithm's scope, do not hesitate to contact me at <thibaut.vidal@polymtl.ca>.
+After building FPmax* LIB, copy the required files into the project directory:
+1. Create a directory named "external" with two subdirectories named "include" and "lib":
+```console
+mkdir -p external/include external/lib
+```
+2. Copy the required FPmax* LIB header files into the "external/include" directory.
+3. Copy the FPmax* LIB shared library (.so on Linux or .dll on Windows) into the "external/lib" directory.
 
 ## Compiling the executable 
 
@@ -87,7 +75,12 @@ Additional Arguments:
 [-lambda <int>] Number of solutions created before reaching the maximum population size (i.e., generation size). Defaults to 40
 [-nbElite <int>] Number of elite individuals. Defaults to 5                                                                    
 [-nbClose <int>] Number of closest solutions/individuals considered when calculating diversity contribution. Defaults to 4     
-[-targetFeasible <double>] target ratio of feasible individuals in the last 100 generatied individuals. Defaults to 0.2        
+[-targetFeasible <double>] target ratio of feasible individuals in the last 100 generatied individuals. Defaults to 0.2  
+[-randGen <double>] Ratio of randomly generated individuals (complemented using RCW). Dynamic default based on instance size
+[-mdmNbElite <int>] Number of individuals in the MDM elite set. Dynamic default based on instance size 
+[-mdmNbPatterns <int>] Number of (largest) patterns mined from the MDM elite set. Defaults to 5 
+[-mdmNURestarts <double>] Maximum percentage of restarts without updating the MDM elite set. Defaults to 0.05
+[-mdmMinSup <double>] Minimum support of patterns mined from the MDM elite set. Defaults to 0.8      
 ```
 
 There exist different conventions regarding distance calculations in the academic literature.
@@ -114,7 +107,7 @@ In addition, additional classes have been created to facilitate interfacing:
 
 ## Compiling the shared library
 
-You can also build a shared library to call the HGS-CVRP algorithm from your code.
+You can also build a shared library to call the MDM-HGS-CVRP algorithm from your code.
 
 ```console
 mkdir build
@@ -130,21 +123,6 @@ To test calling the shared library from a C code:
 make lib_test_c
 ctest -R lib --verbose
 ```
-
-## Contributing
-
-Thank you very much for your interest in this code.
-This code is still actively maintained and evolving. Pull requests and contributions seeking to improve the code in terms of readability, usability, and performance are welcome. Development is conducted in the `dev` branch. I recommend to contact me beforehand at <thibaut.vidal@polymtl.ca> before any major rework.
-
-As a general guideline, the goal of this code is to stay **simple**, **stand-alone**, and **specialized** to the CVRP. 
-Contributions that aim to extend this approach to different variants of the vehicle routing problem should usually remain in a separate repository.
-Similarly, additional libraries or significant increases of conceptual complexity will be avoided. Indeed, when developing (meta-)heuristics, it seems always possible to do a bit better at the cost of extra conceptual complexity. The overarching goal of this code is to find a good trade-off between algorithm simplicity and performance.
-
-There are two main types of contributions:
-* Changes that do not impact the sequence of solutions found by the HGS algorithm when running `ctest` and testing other instances with a fixed seed.
-This is visible by comparing the average solution value in the population and diversity through a test run. Such contributions include refactoring, simplification, and code optimization. Pull requests of this type are likely to be integrated more quickly.
-* Changes that impact the sequence of solutions found by the algorithm.
-In this case, I recommend to contact me beforehand with (i) a detailed description of the changes, (ii) detailed results on 10 runs of the algorithm for each of the 100 instances of Uchoa et al. (2017) before and after the changes, using the same termination criterion as used in [2](https://arxiv.org/abs/2012.10384). --->
 
 ## License
 

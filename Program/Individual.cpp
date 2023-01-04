@@ -34,7 +34,7 @@ void Individual::evaluateCompleteCost(const Params & params)
 	eval.isFeasible = (eval.capacityExcess < MY_EPSILON && eval.durationExcess < MY_EPSILON);
 }
 
-Individual::Individual(Params & params, bool rcws)
+Individual::Individual(Params & params, bool rcws, std::vector < std::vector <int> >* pattern)
 {
 	successors = std::vector <int>(params.nbClients + 1);
 	predecessors = std::vector <int>(params.nbClients + 1);
@@ -52,6 +52,26 @@ Individual::Individual(Params & params, bool rcws)
 		unsigned savingsCount = 0;
 		int nextEmptyRoute = 0;
 		int nbVehicles = params.nbVehicles;
+
+		if (pattern)	// insert pattern
+			for (unsigned r = 0; r < pattern->size(); r++)
+			{
+				if (nextEmptyRoute == nbVehicles)
+				{
+					nbVehicles++;
+					chromR.push_back(std::vector <int>());
+					load.push_back(0);
+				}
+				for (unsigned c = 0; c < (*pattern)[r].size(); c++)
+				{
+					chromR[nextEmptyRoute].push_back((*pattern)[r][c]);
+					load[nextEmptyRoute] += params.cli[(*pattern)[r][c]].demand;
+					inRoute[(*pattern)[r][c]] = true;
+					if (c && c != (*pattern)[r].size() - 1)
+						interior[(*pattern)[r][c]] = true;
+				}
+				while (nextEmptyRoute < nbVehicles && !chromR[nextEmptyRoute].empty()) nextEmptyRoute++;
+			}
 
 		while (savingsCount < params.savingsList.size() || tournamentSavingsOccupancy > 0)
 		{

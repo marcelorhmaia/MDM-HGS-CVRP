@@ -27,6 +27,8 @@ SOFTWARE.*/
 #include "LocalSearch.h"
 #include "Split.h"
 
+#include <set>
+
 typedef std::vector <Individual*> SubPopulation ;
 
 class Population
@@ -44,13 +46,27 @@ class Population
    Individual bestSolutionRestart;              // Best solution found during the current restart of the algorithm
    Individual bestSolutionOverall;              // Best solution found during the complete execution of the algorithm
 
+   std::set<Individual,bool(*)(Individual,Individual)> mdmElite;	// MDM elite set, kept ordered by increasing penalized cost
+   bool mdmEliteUpdated;						// Flag to indicate if the MDM elite set has been updated since the last call to mineElite()
+   int mdmEliteNonUpdatingRestarts;				// Number of restarts since the last time the MDM elite set was updated
+   std::vector< std::vector < std::vector <int> > > mdmPatterns;	// Patterns mined from the MDM elite set
+   int mdmNextPattern;							// Index of the next pattern to be used
+
    // Evaluates the biased fitness of all individuals in the population
    void updateBiasedFitnesses(SubPopulation & pop);
 
    // Removes the worst individual in terms of biased fitness
    void removeWorstBiasedFitness(SubPopulation & subpop);
 
+   // Checks if an individual is eligible to be inserted in the MDM elite. If TRUE, inserts it.
+   void updateMDMElite(const Individual & indiv);
+
+   // Retrieves the next pattern to be used.
+   std::vector < std::vector <int> >* nextMDMPattern();
+
    public:
+
+   int mdmEliteMaxNonUpdatingRestarts;			// Maximum number of restarts since the last update of the MDM elite set
 
    // Creates an initial population of individuals
    void generatePopulation();
@@ -97,6 +113,12 @@ class Population
 
    // Exports an Individual in CVRPLib format
    void exportCVRPLibFormat(const Individual & indiv, std::string fileName);
+
+   // Mines patterns from the MDM elite set
+   void mineElite();
+
+   // Returns the state of the MDM patterns set: TRUE if empty; FALSE otherwise.
+   inline bool mdmPatternsEmpty() { return mdmPatterns.empty(); }
 
    // Constructor
    Population(Params & params, Split & split, LocalSearch & localSearch);

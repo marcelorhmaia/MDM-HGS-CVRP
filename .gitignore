@@ -1,6 +1,9 @@
 # Build directory
 build
 
+# External directory
+external
+
 # Test build files
 Test/CMakeFiles/
 Test/CMakeCache.txt

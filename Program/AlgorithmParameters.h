@@ -21,6 +21,11 @@ struct AlgorithmParameters {
 	int useSwapStar;		// Use SWAP* local search or not. Default value: 1. Only available when coordinates are provided.
 	
 	double randGeneration;	// Portion of randomly generated individuals (the other part is generated using a randomized version of the Clarke & Wright savings heuristic). Default value: -1 (dynamic, based on instance size)
+	
+	int mdmNbElite;			// Maximum number of individuals in the MDM elite set
+	int mdmNbPatterns;		// Number of (largest) patterns to be mined from the MDM elite set
+	double mdmNURestarts;	// Portion of restarts without update of the MDM elite set to trigger data mining (with respect to a dynamically estimated total)
+	double mdmMinSup;		// Minimum support for the MDM elite set mined patterns
 };
 
 

@@ -51,8 +51,8 @@ public:
   void evaluateCompleteCost(const Params & params);
 
   // Constructor:
-  // - If rcws is true, uses a randomized version of the Clarke & Wright savings heuristic
+  // - If rcws is true, uses a randomized version of the Clarke & Wright savings heuristic (initialized with a pattern, if provided)
   // - Otherwise (default), constructs a random individual containing only a giant tour with a shuffled visit order
-  Individual(Params & params, bool rcws=false);
+  Individual(Params & params, bool rcws=false, std::vector < std::vector <int> >* pattern=NULL);
 };
 #endif

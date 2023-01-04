@@ -42,7 +42,7 @@ public:
 	// Reads the line of command and extracts possible options
 	CommandLine(int argc, char* argv[])
 	{
-		if (argc % 2 != 1 || argc > 29 || argc < 3)
+		if (argc % 2 != 1 || argc > 37 || argc < 3)
 		{
 			std::cout << "----- NUMBER OF COMMANDLINE ARGUMENTS IS INCORRECT: " << argc << std::endl;
 			display_help(); throw std::string("Incorrect line of command");
@@ -79,6 +79,14 @@ public:
 					ap.targetFeasible = atof(argv[i+1]);
 				else if (std::string(argv[i]) == "-randGen")
 					ap.randGeneration = atof(argv[i+1]);
+				else if (std::string(argv[i]) == "-mdmNbElite")
+					ap.mdmNbElite = atoi(argv[i+1]);
+				else if (std::string(argv[i]) == "-mdmNbPatterns")
+					ap.mdmNbPatterns = atoi(argv[i+1]);
+				else if (std::string(argv[i]) == "-mdmNURestarts")
+					ap.mdmNURestarts = atof(argv[i+1]);
+				else if (std::string(argv[i]) == "-mdmMinSup")
+					ap.mdmMinSup = atof(argv[i+1]);
 				else
 				{
 					std::cout << "----- ARGUMENT NOT RECOGNIZED: " << std::string(argv[i]) << std::endl;
@@ -109,6 +117,10 @@ public:
 		std::cout << "[-nbClose <int>] Number of closest solutions/individuals considered when calculating diversity contribution. Defaults to 4      " << std::endl;
 		std::cout << "[-targetFeasible <double>] target ratio of feasible individuals in the last 100 generatied individuals. Defaults to 0.2         " << std::endl;
 		std::cout << "[-randGen <double>] Ratio of randomly generated individuals (complemented using RCW). Dynamic default based on instance size    " << std::endl;
+		std::cout << "[-mdmNbElite <int>] Number of individuals in the MDM elite set. Dynamic default based on instance size                          " << std::endl;
+		std::cout << "[-mdmNbPatterns <int>] Number of (largest) patterns mined from the MDM elite set. Defaults to 5                                 " << std::endl;
+		std::cout << "[-mdmNURestarts <double>] Maximum percentage of restarts without updating the MDM elite set. Defaults to 0.05                   " << std::endl;
+		std::cout << "[-mdmMinSup <double>] Minimum support of patterns mined from the MDM elite set. Defaults to 0.8                                 " << std::endl;
 		std::cout << "--------------------------------------------------------------------------------------------------------------------------------" << std::endl;
 		std::cout << std::endl;
 	};

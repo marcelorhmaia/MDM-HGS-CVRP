@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 		Params params(cvrp.x_coords,cvrp.y_coords,cvrp.dist_mtx,cvrp.service_time,cvrp.demands,
 			          cvrp.vehicleCapacity,cvrp.durationLimit,commandline.nbVeh,cvrp.isDurationConstraint,commandline.verbose,commandline.ap);
 		
-		// Dynamic randGeneration parameter value
+		// Dynamic default parameter values
 		if (params.ap.randGeneration < 0)
 			if (params.nbClients < 200)
 				params.ap.randGeneration = 0.1;
@@ -27,6 +27,15 @@ int main(int argc, char *argv[])
 				params.ap.randGeneration = 0.8;
 			else
 				params.ap.randGeneration = 0.2;
+		if (params.ap.mdmNbElite < 0)
+			if (params.nbClients < 200)
+				params.ap.mdmNbElite = 5;
+			else if (params.nbClients < 400)
+				params.ap.mdmNbElite = 10;
+			else if (params.nbClients < 1001)
+				params.ap.mdmNbElite = 5;
+			else
+				params.ap.mdmNbElite = 0;
 
 		// Print all algorithm parameter values
 		if (commandline.verbose) print_algorithm_parameters(params.ap);

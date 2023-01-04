@@ -14,14 +14,22 @@ set(
         Program/AlgorithmParameters.cpp
         Program/C_Interface.cpp)
 
-include_directories(Program)
+include_directories(Program external/include)
+link_directories(external/lib)
 
 # Build Executable
 add_executable(bin
         Program/main.cpp
         ${src_files})
+		
+target_link_libraries(bin fpmax)
 
 set_target_properties(bin PROPERTIES OUTPUT_NAME hgs)
+
+add_custom_command(TARGET bin POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${PROJECT_SOURCE_DIR}/external/lib"
+        "${PROJECT_SOURCE_DIR}/build")
 
 # Test Executable
 include(CTest)
@@ -50,6 +58,7 @@ add_test(NAME    bin_test_CMT7
 
 # Build Library
 add_library(lib SHARED ${src_files})
+target_link_libraries(lib fpmax)
 set_target_properties(lib PROPERTIES OUTPUT_NAME hgscvrp)
 
 # Test Library

@@ -22,6 +22,11 @@ struct AlgorithmParameters default_algorithm_parameters() {
 	ap.useSwapStar = 1;
 
 	ap.randGeneration = -1;
+	
+	ap.mdmNbElite = -1;
+	ap.mdmNbPatterns = 5;
+	ap.mdmNURestarts = 0.05;
+	ap.mdmMinSup = 0.8;
 
 	return ap;
 }
@@ -40,5 +45,9 @@ void print_algorithm_parameters(const AlgorithmParameters & ap)
 	std::cout << "---- timeLimit         is set to " << ap.timeLimit << std::endl;
 	std::cout << "---- useSwapStar       is set to " << ap.useSwapStar << std::endl;
 	std::cout << "---- randGeneration    is set to " << ap.randGeneration << std::endl;
+	std::cout << "---- mdmNbElite        is set to " << ap.mdmNbElite << std::endl;
+	std::cout << "---- mdmNbPatterns     is set to " << ap.mdmNbPatterns << std::endl;
+	std::cout << "---- mdmNURestarts     is set to " << ap.mdmNURestarts << std::endl;
+	std::cout << "---- mdmMinSup         is set to " << ap.mdmMinSup << std::endl;
 	std::cout << "==================================================" << std::endl;
 }

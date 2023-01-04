@@ -5,7 +5,7 @@ file(REMOVE mySolution.sol.PG.csv)
 
 # solve the given instance
 execute_process(
-        COMMAND ./hgs ../Instances/CVRP/${INSTANCE}.vrp mySolution.sol -seed 1 -round ${ROUND}
+        COMMAND ./hgs ../Instances/CVRP/${INSTANCE}.vrp mySolution.sol -seed 1 -round ${ROUND} -t 30
         RESULTS_VARIABLE result
 )
 message(${result})
