@@ -182,7 +182,7 @@ void Population::mineElite()
 					int index = indiv.chromR[r][c] * nbNodes + indiv.chromR[r][c + 1]; // maps 2D matrix cell indices to a vector index
 					transaction.insert(index);
 				}
-			dataset->insert(transaction);
+			dataset->push_back(transaction);
 		}
 		
 		FISet* frequentItemsets = fpmax(dataset, minSup, numPatterns);
