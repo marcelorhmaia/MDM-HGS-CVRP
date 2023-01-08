@@ -423,7 +423,7 @@ void Population::exportCVRPLibFormat(const Individual & indiv, std::string fileN
 // Comparator for ordering individuals by penalized cost
 bool CompareIndividuals(Individual indiv1, Individual indiv2)
 {
-	return indiv1.eval.penalizedCost < indiv2.eval.penalizedCost;
+	return indiv1.eval.penalizedCost < indiv2.eval.penalizedCost - MY_EPSILON;
 }
 
 Population::Population(Params & params, Split & split, LocalSearch & localSearch) : params(params), split(split), localSearch(localSearch), bestSolutionRestart(params), bestSolutionOverall(params), mdmElite(CompareIndividuals)
