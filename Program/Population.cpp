@@ -236,6 +236,8 @@ void Population::mineElite()
 
 			mdmPatterns.push_back(tempPattern);
 		}
+		
+		delete frequentItemsets;
 
 		mdmEliteUpdated = false;
 		mdmNextPattern = 0;
