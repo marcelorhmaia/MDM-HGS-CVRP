@@ -129,4 +129,5 @@ ctest -R lib --verbose
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
 
 - **[MIT license](http://opensource.org/licenses/mit-license.php)**
-- Copyright(c) 2020 Thibaut Vidal, 2022 Marcelo Maia
+- Copyright(c) 2020 Thibaut Vidal
+- Copyright(c) 2022 Marcelo Maia
