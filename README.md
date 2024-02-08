@@ -13,9 +13,8 @@ The main branch is based on HGS-CVRP v2.0.0.
 
 When using this algorithm (or part of it) in derived academic studies, please refer to the following papers:
 
-[1] Maia, M. R. H., Plastino, A., Souza, U. S. (2022). 
-An Improved Hybrid Genetic Search with Data Mining for the CVRP. In: 12th DIMACS Implementation Challenge: Vehicle Routing Problems. 
-(Available [HERE](http://dimacs.rutgers.edu/events/details?eID=2073)).
+[1] Maia, M. R. H., Plastino, A., Souza, U. S. (2024). An improved hybrid genetic search with data mining for the CVRP. Networks.
+https://doi.org/10.1002/net.22213 (A short report is also available [HERE](http://dimacs.rutgers.edu/events/details?eID=2073)).
 
 [2] Vidal, T. (2022). Hybrid genetic search for the CVRP: Open-source implementation and SWAP* neighborhood. Computers & Operations Research, 140, 105643.
 https://doi.org/10.1016/j.cor.2021.105643 (Available [HERE](https://arxiv.org/abs/2012.10384) in technical report form).
