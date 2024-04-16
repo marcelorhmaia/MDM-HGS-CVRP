@@ -13,7 +13,7 @@ The main branch is based on HGS-CVRP v2.0.0.
 
 When using this algorithm (or part of it) in derived academic studies, please refer to the following papers:
 
-[1] Maia, M. R. H., Plastino, A., Souza, U. S. (2024). An improved hybrid genetic search with data mining for the CVRP. Networks.
+[1] Maia, M. R. H., Plastino, A., Souza, U. S. (2024). An improved hybrid genetic search with data mining for the CVRP. Networks, 83, 692–711.
 https://doi.org/10.1002/net.22213 (Available [HERE](https://onlinelibrary.wiley.com/share/author/AZEHMWNPWREGZN3AUQ7F?target=10.1002/net.22213)).
 
 [2] Vidal, T. (2022). Hybrid genetic search for the CVRP: Open-source implementation and SWAP* neighborhood. Computers & Operations Research, 140, 105643.
